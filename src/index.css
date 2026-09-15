@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/*
+ * Tala design system tokens (source: .claude skill "tala-design-system").
+ * Swap this block when the web design system package lands.
+ */
+@theme {
+  --font-sans: "Lexend", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand — orange (Credit) */
+  --color-orange-10: #fbe9dd;
+  --color-orange-30: #f2be9a;
+  --color-orange-50: #f06f14;
+  --color-orange-70: #c86824;
+  --color-orange-90: #8f5228;
+
+  /* Brand — teal (Wallet) */
+  --color-teal-10: #d2f2f4;
+  --color-teal-30: #60e5ed;
+  --color-teal-50: #20bec6;
+  --color-teal-70: #1a989e;
+  --color-teal-90: #1d6d70;
+
+  /* Functional — success */
+  --color-green-10: #e0e695;
+  --color-green-50: #bec658;
+  --color-green-90: #99a133;
+
+  /* Functional — error */
+  --color-red-10: #ffc6cc;
+  --color-red-50: #d00f1f;
+  --color-red-90: #7c0105;
+
+  /* Neutral — bone (surfaces) */
+  --color-bone-0: #ffffff;
+  --color-bone-10: #fbfbf8;
+  --color-bone-20: #f5f6f0;
+  --color-bone-30: #f3f2e5;
+  --color-bone-50: #d8d4c3;
+
+  /* Neutral — dark green (text) */
+  --color-dark-green-30: #c2c6c0;
+  --color-dark-green-50: #676d65;
+  --color-dark-green-70: #314329;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  /* Elevation */
+  --shadow-surface-1: 0 1px 5px rgb(0 0 0 / 0.1);
+  --shadow-surface-2-up: 0 -2px 10px rgb(0 0 0 / 0.08);
+  --shadow-surface-2-down: 0 2px 10px rgb(0 0 0 / 0.08);
+
+  /* Prototype hub chrome — sits outside the Tala design system */
+  --color-shell-ink: #0e1810;
+  --color-shell-panel: #17231b;
+  --color-shell-frame: #101512;
+}
+
+/* Type scale */
+@utility type-display { font-size: 40px; line-height: 48px; font-weight: 600; }
+@utility type-header-1 { font-size: 24px; line-height: 30px; font-weight: 600; }
+@utility type-header-2 { font-size: 20px; line-height: 24px; font-weight: 600; }
+@utility type-subheader-1 { font-size: 16px; line-height: 20px; font-weight: 600; }
+@utility type-subheader-2 { font-size: 14px; line-height: 16px; font-weight: 500; }
+@utility type-body-1 { font-size: 14px; line-height: 16px; font-weight: 400; }
+@utility type-body-2 { font-size: 14px; line-height: 16px; font-weight: 300; }
+@utility type-label-1 { font-size: 14px; line-height: 16px; font-weight: 600; }
+@utility type-label-2 { font-size: 14px; line-height: 16px; font-weight: 500; }
+@utility type-caption { font-size: 12px; line-height: 16px; font-weight: 500; }
+@utility type-action-link {
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bone-20);
+  color: var(--color-dark-green-70);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  cursor: pointer;
+}
