@@ -135,18 +135,35 @@ export function DetailRow({
   )
 }
 
+export function Switch({ checked, onChange, ariaLabel }: { checked: boolean; onChange: (next: boolean) => void; ariaLabel?: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      onClick={() => onChange(!checked)}
+      className={cx('relative h-6 w-11 shrink-0 rounded-full transition-colors', checked ? 'bg-orange-50' : 'bg-bone-50')}
+    >
+      <span className={cx('absolute top-0.5 size-5 rounded-full bg-bone-0 shadow-surface-1 transition-all', checked ? 'left-[22px]' : 'left-0.5')} />
+    </button>
+  )
+}
+
 export function ListRow({
   icon: RowIcon,
   title,
   subtitle,
   onClick,
+  trailing,
   tone = 'teal',
 }: {
   icon?: Icon
   title: ReactNode
   subtitle?: ReactNode
   onClick?: () => void
-  tone?: 'teal' | 'neutral'
+  trailing?: ReactNode
+  tone?: 'teal' | 'neutral' | 'error'
 }) {
   return (
     <button type="button" onClick={onClick} className="flex w-full items-center gap-4 px-4 py-4 text-left active:bg-bone-20">
@@ -154,17 +171,19 @@ export function ListRow({
         <span
           className={cx(
             'grid size-10 shrink-0 place-items-center rounded-full',
-            tone === 'teal' ? 'bg-teal-10 text-teal-90' : 'bg-bone-20 text-dark-green-70',
+            tone === 'teal' && 'bg-teal-10 text-teal-90',
+            tone === 'neutral' && 'bg-bone-20 text-dark-green-70',
+            tone === 'error' && 'bg-red-10 text-red-50',
           )}
         >
           <RowIcon />
         </span>
       )}
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="type-label-1 text-dark-green-70">{title}</span>
+        <span className={cx('type-label-1', tone === 'error' ? 'text-red-50' : 'text-dark-green-70')}>{title}</span>
         {subtitle && <span className="type-body-2 text-dark-green-50">{subtitle}</span>}
       </span>
-      <ChevronRight className="shrink-0 text-dark-green-50" />
+      {trailing ?? <ChevronRight className="shrink-0 text-dark-green-50" />}
     </button>
   )
 }

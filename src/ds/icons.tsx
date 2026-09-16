@@ -102,3 +102,17 @@ export const File = icon(<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 
 export const Shield = icon(<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6zM9 12l2 2 4-4" />)
 export const Bell = icon(<path d="M18 16V11a6 6 0 1 0-12 0v5l-2 2h16zM10 21h4" />)
 export const Notes = icon(<path d="M8 6h12M8 12h12M8 18h8M4 6h.01M4 12h.01M4 18h.01" />)
+export const Lock = icon(
+  <>
+    <rect x="4" y="10" width="16" height="11" rx="2" />
+    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+  </>,
+)
+export const Globe = icon(
+  <>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3c2.5 2.5 3.5 5.7 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.7-3.5-9s1-6.5 3.5-9Z" />
+  </>,
+)
+export const TextSize = icon(<path d="M3 6h9M7.5 6v12M13 11h7M16.5 11v7" />)
+export const Logout = icon(<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h8M17 8l4 4-4 4M21 12H10" />)

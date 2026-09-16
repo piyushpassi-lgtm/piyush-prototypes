@@ -36,7 +36,7 @@ function SettingsBody({ go, state }: Pick<ScreenProps, 'go' | 'state'>) {
         <h3 className="type-label-2 px-1 text-dark-green-50">Controls</h3>
         <Card className="divide-y divide-bone-50">
           <ListRow tone="neutral" icon={Pause} title="Skip next collection" subtitle={`Pay ${DUES[1].date} yourself`} onClick={() => go('pause-sheet')} />
-          <ListRow tone="neutral" icon={Power} title="Turn off auto-pay" subtitle="Free, any time" onClick={() => go('cancel-sheet')} />
+          <ListRow tone="neutral" icon={Power} title="Turn off Autopay" subtitle="Free, any time" onClick={() => go('cancel-sheet')} />
         </Card>
       </div>
     </div>
@@ -45,7 +45,7 @@ function SettingsBody({ go, state }: Pick<ScreenProps, 'go' | 'state'>) {
 
 export function AutoPaySettings({ go, back, state }: ScreenProps) {
   return (
-    <ScreenLayout statusClassName="bg-bone-0" header={<TopNav title="Auto-pay" onBack={back} />}>
+    <ScreenLayout statusClassName="bg-bone-0" header={<TopNav title="Autopay" onBack={back} />}>
       <SettingsBody go={go} state={state} />
     </ScreenLayout>
   )
@@ -104,20 +104,20 @@ export function PauseSheet({ go, back, state }: ScreenProps) {
   return (
     <ScreenLayout
       statusClassName="bg-bone-0"
-      header={<TopNav title="Auto-pay" onBack={back} />}
+      header={<TopNav title="Autopay" onBack={back} />}
       overlay={
         <BottomSheet onDismiss={close}>
           <div className="flex flex-col gap-2">
             <h2 className="type-header-2 text-dark-green-70">Skip the {DUES[1].date} collection?</h2>
             <p className="type-body-1 text-dark-green-50">
               We won't request {LOAN.instalment} from {accountShort(account)}. You'll need to pay it yourself by {DUES[1].date}.
-              Auto-pay starts again on {DUES[2].date}.
+              Autopay starts again on {DUES[2].date}.
             </p>
           </div>
           <div className="flex flex-col gap-2 pt-6">
             <Button onClick={close}>Skip this collection</Button>
             <Button variant="tertiary" onClick={close}>
-              Keep auto-pay
+              Keep Autopay
             </Button>
           </div>
         </BottomSheet>
@@ -134,20 +134,20 @@ export function CancelSheet({ go, back, state }: ScreenProps) {
   return (
     <ScreenLayout
       statusClassName="bg-bone-0"
-      header={<TopNav title="Auto-pay" onBack={back} />}
+      header={<TopNav title="Autopay" onBack={back} />}
       overlay={
         <BottomSheet onDismiss={close}>
           <div className="flex flex-col gap-2">
-            <h2 className="type-header-2 text-dark-green-70">Turn off auto-pay?</h2>
+            <h2 className="type-header-2 text-dark-green-70">Turn off Autopay?</h2>
             <p className="type-body-1 text-dark-green-50">
               We'll stop collecting from {accountShort(account)}. You'll need to pay {LOAN.instalment} by {DUES[1].date}, and each
               payment after, yourself. You can turn it back on any time.
             </p>
           </div>
           <div className="flex flex-col gap-2 pt-6">
-            <Button onClick={() => go('autopay-off', { replace: true })}>Turn off auto-pay</Button>
+            <Button onClick={() => go('autopay-off', { replace: true })}>Turn off Autopay</Button>
             <Button variant="tertiary" onClick={close}>
-              Keep auto-pay
+              Keep Autopay
             </Button>
           </div>
         </BottomSheet>
@@ -174,7 +174,7 @@ export function AutoPayOff({ go, state, setState }: ScreenProps) {
               go('consent')
             }}
           >
-            Turn auto-pay back on
+            Turn Autopay back on
           </Button>
         </StickyFooter>
       }
@@ -184,7 +184,7 @@ export function AutoPayOff({ go, state, setState }: ScreenProps) {
           <Power size={32} />
         </span>
         <div className="flex flex-col gap-2">
-          <h1 className="type-header-1 text-dark-green-70">Auto-pay is off</h1>
+          <h1 className="type-header-1 text-dark-green-70">Autopay is off</h1>
           <p className="type-body-1 text-dark-green-50">We won't collect any more payments from {accountShort(account)}.</p>
         </div>
         <Card className="px-4">

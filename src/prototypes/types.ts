@@ -17,6 +17,8 @@ export type ScreenNotes = {
   information?: string[]
   assumptions?: string[]
   openQuestions?: string[]
+  /** Questions that have since been answered, with the answer. */
+  answeredQuestions?: string[]
   engineeringQuestions?: string[]
   designInputs?: string[]
 }

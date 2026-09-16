@@ -47,15 +47,15 @@ export function StatusBar({ tone = 'dark', className }: { tone?: 'dark' | 'light
 
 // ── Navigation (§7.5) ─────────────────────────────────────────────────────────
 
-export function TopNavHome() {
+export function TopNavHome({ onProfile }: { onProfile?: () => void }) {
   return (
     <header className="flex shrink-0 items-center justify-between bg-bone-10 px-4 pb-2 pt-4">
       <Wordmark className="h-5 w-auto text-teal-50" />
       <div className="flex items-center gap-2">
         <span className="type-label-2 rounded-full border border-bone-50 px-4 py-2 text-dark-green-70">Help</span>
-        <span className="grid size-8 place-items-center text-dark-green-50">
+        <button type="button" onClick={onProfile} aria-label="Profile" className="grid size-8 place-items-center text-dark-green-50">
           <Person />
-        </span>
+        </button>
       </div>
     </header>
   )

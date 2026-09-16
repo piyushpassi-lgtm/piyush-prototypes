@@ -4,21 +4,26 @@ import * as Entry from './screens/entry'
 import * as Lifecycle from './screens/lifecycle'
 import * as Manage from './screens/manage'
 import * as Push from './screens/notifications'
+import { Profile } from './screens/profile'
 
-// Sources: docs/MX AutoDebit Experiment- Brief.md (PRD v4.0) and the Piyush / Arun call on 2 Sep 2026.
+// Sources: docs/MX AutoDebit Experiment- Brief.md (PRD v4.0), the Piyush / Arun call on 2 Sep 2026
+// and the Auto-Debits UX review on 15 Sep 2026.
 
 const T_MINUS_ONE =
-  'Submit on T-1 or on the due date? The copy assumes T-1 ("a day early"); the decision is still open with the team.'
+  'Submit on T-1 or on the due date? The team is leaning towards charging on the target date between 6pm and midnight; the decision is due in the weekly sync.'
+
+const NAMING = 'What are we calling this feature — "AutoPay", "auto-pay", or something else?'
 
 // Both consent variants carry the same notes — the skip question is what separates them.
 const consentNotes: ScreenNotes = {
   assumptions: [
-    'Consent is given by tapping Turn on auto-pay. There is no checkbox, and the direct debit form is presented on the screen.',
+    'Consent is given by the CTA itself. There is no checkbox, and the direct debit form is one tap away from this screen.',
     'Consent is per loan and does not carry over to the next loan (Legal, ZG).',
     'Skipping never blocks disbursement. Banxico rules do not allow consent to be mandatory for disbursement.',
     'No incentive is offered in Q3.',
   ],
   openQuestions: [
+    NAMING,
     'Will we allow skip? Compare the two variants of this screen.',
     "Should we allow picking a 'from' account, as shown in the prototype?",
     'Is consent through the CTA enough for Legal? Scenario 3 (a standalone step with active consent) was rated lowest CONDUSEF/LPDUSF risk.',
@@ -26,10 +31,13 @@ const consentNotes: ScreenNotes = {
     'How does the 3-day grace period interact with the ~12-hour confirmation gap? Should we pause penalties?',
     'Maximum amount on the form: exactly the instalment, or a cap that covers late fees?',
   ],
+  answeredQuestions: [
+    'Should the weekend and holiday case be explained here? No — this screen only sells the consent. Weekend handling is communicated on the days around the debit.',
+    'Do we need a user agreement link? Yes — the direct debit form is linked from this screen, in the standard Tala way.',
+  ],
   designInputs: [
     'Must show: amount, date of debit (target date), and the account (disbursement account by default).',
     'Fixes the 2025 test gaps: gives a reason, reassures on amount and timing, and says clearly that you can cancel.',
-    'Arun: "you have the ability to pause, manage and view everything — you are in control, not Tala".',
   ],
 }
 
@@ -39,16 +47,16 @@ export const mxAutoDebit: Prototype = {
   market: 'Mexico',
   flag: '🇲🇽',
   status: 'Draft v1',
-  updated: '15 Sep 2026',
-  summary: 'End-to-end auto-debit for Mexico: consent from four entry points, registration, debit lifecycle, history and management.',
-  initialState: { source: 'home-card', account: 'bbva', consentChecked: false },
+  updated: '16 Sep 2026',
+  summary: 'End-to-end auto-debit for Mexico: consent from every entry point, registration, debit lifecycle, history and management.',
+  initialState: { source: 'home-card', account: 'bbva' },
 
   sections: [
     {
       id: 'entry',
       label: 'Entry points',
       kind: 'entry',
-      screens: ['disb-review', 'home-card', 'home-modal', 'pn-nudge', 'payment-upsell'],
+      screens: ['disb-review', 'disb-returning', 'home-card', 'home-modal', 'pn-nudge', 'payment-upsell'],
     },
     {
       id: 'consent',
@@ -57,10 +65,16 @@ export const mxAutoDebit: Prototype = {
       screens: ['consent', 'consent-no-skip', 'agreement', 'choose-account', 'setting-up', 'setup-success', 'setup-failed', 'money-on-way'],
     },
     {
+      id: 'outcomes',
+      label: 'Disbursement outcomes',
+      kind: 'flow',
+      screens: ['disb-fail-autopay-on', 'disb-ok-autopay-fail', 'both-fail'],
+    },
+    {
       id: 'lifecycle',
       label: 'Around a debit',
       kind: 'flow',
-      screens: ['home-autopay-on', 'home-reminder', 'home-processing', 'home-paid', 'home-failed'],
+      screens: ['home-autopay-on', 'home-next-payment', 'home-reminder', 'home-processing', 'home-failed'],
     },
     {
       id: 'history',
@@ -70,9 +84,9 @@ export const mxAutoDebit: Prototype = {
     },
     {
       id: 'manage',
-      label: 'Manage auto-pay',
+      label: 'Profile & manage',
       kind: 'flow',
-      screens: ['autopay-settings', 'change-date', 'pause-sheet', 'cancel-sheet', 'autopay-off'],
+      screens: ['profile', 'autopay-settings', 'change-date', 'pause-sheet', 'cancel-sheet', 'autopay-off'],
     },
     {
       id: 'notifications',
@@ -103,6 +117,21 @@ export const mxAutoDebit: Prototype = {
         ],
       },
     },
+    'disb-returning': {
+      title: 'At disbursement — returning customer',
+      description: 'Someone who has used Autopay before gets a toggle on the disbursement screen instead of the full consent step.',
+      component: Entry.DisbursementReturning,
+      notes: {
+        information: [
+          'Consent cannot carry over between loans, so a new mandate is still registered — the toggle is a shortcut through the same flow.',
+        ],
+        openQuestions: [
+          'Is the toggle on or off by default for a returning customer?',
+          'Is a Details link enough for the returning case, or must the full form be shown again each loan?',
+          'What counts as "returning": any past mandate, or only one that collected successfully?',
+        ],
+      },
+    },
     'home-card': {
       title: 'Home screen card',
       description: 'Always-on card for test customers who skipped consent. Reaches people mid-loan and is the fastest route to volume.',
@@ -110,14 +139,13 @@ export const mxAutoDebit: Prototype = {
       notes: {
         assumptions: [
           'Only shown to test customers who skipped consent at disbursement or whose registration failed.',
-          'Hidden once auto-pay is on, or when the next due date is too close to register a mandate in time.',
+          'Show other block 2s if this is turned on during disbursement or later.',
         ],
         openQuestions: [
-          'What is the cut-off? How many days before a due date does a mid-loan mandate still catch that payment?',
-          'Should take rate be reported per entry point? It would tell us which moment converts best, a Q3 question.',
+          'What is the cut-off? How many days before a due date does a mid-loan mandate still catch that payment? This helps teams know when to show this messaging.',
         ],
         designInputs: [
-          'Arun: "everything leads to the same consent screen" — consent is exposed as an API any team can call.',
+          'Everything leads to the same consent screen. Consent is exposed as an API any team can call.',
           'Home card entry is optional scope in the PRD, and it sends a Braze attribute to power push notifications.',
         ],
       },
@@ -129,16 +157,11 @@ export const mxAutoDebit: Prototype = {
       backTo: 'home-card',
       notes: {
         assumptions: [
-          'Braze only delivers the message. Tala records the consent, not Braze.',
           'There is no incentive in Q3, so the pitch rests on reassurance: amount, date, a reminder and "cancel whenever you like".',
         ],
         openQuestions: [
           'Frequency cap: how many times do we show this before we stop?',
-          'Does "Maybe later" also hide the Home card for a while?',
-        ],
-        designInputs: [
-          '2025 Santander test: 30% clicked but only 10% of those gave permission. The screen gave "no reason to sign up".',
-          'Arun: "We cannot sell it as a convenience. You need to give them something more." Incentives are planned for Q4.',
+          'Tapping on "Maybe later" should continue to show the Block 2 for setup',
         ],
       },
     },
@@ -147,7 +170,6 @@ export const mxAutoDebit: Prototype = {
       description: 'Reaches customers outside the app. It is the only channel we can time, for example just after payday.',
       component: Push.PushNudge,
       notes: {
-        assumptions: ['Sent through Braze to test customers who have not consented, using the attribute set at disbursement.'],
         openQuestions: [
           'What is the best send time relative to payday and the due date?',
           'If the push is opened after the cut-off, should consent start from the next payment?',
@@ -159,15 +181,10 @@ export const mxAutoDebit: Prototype = {
     },
     'payment-upsell': {
       title: 'After a manual payment',
-      description: 'Exploration: offer auto-pay for the next payment right after a successful manual one.',
+      description: 'Exploration: offer Autopay for the next payment right after a successful manual one.',
       component: Entry.PostPaymentUpsell,
       notes: {
         assumptions: ['Not in v1 scope. Shown to help plan entry points for Q4.'],
-        openQuestions: ['Does this cannibalise manual channels that cost about a quarter as much per transaction?'],
-        designInputs: [
-          'Auto-debit offered as a cash-in option only reached a 3% take rate: it asked people to wait at the moment they wanted to pay.',
-          'Arun: "Thank you for the payment. Do you want your next payment to be on auto-debit? That\'s a slick experience."',
-        ],
       },
     },
 
@@ -181,31 +198,17 @@ export const mxAutoDebit: Prototype = {
     },
     'consent-no-skip': {
       title: 'Consent — no skip',
-      description: 'The same screen without a skip action: the customer either turns on auto-pay or leaves with the back arrow.',
+      description: 'The same screen without a skip action: the customer either turns on Autopay or leaves with the back arrow.',
       component: Consent.ConsentNoSkip,
       backTo: 'home-card',
       notes: consentNotes,
     },
     agreement: {
       title: 'Direct debit form',
-      description: "Monato's domiciliación template, pre-filled, with a plain-language English version.",
+      description: "Monato's domiciliación template, pre-filled, with a plain-English summary underneath.",
       component: Consent.Agreement,
       backTo: 'consent',
-      notes: {
-        assumptions: [
-          'Periodicity is each instalment date, and the authorisation ends on the last instalment date because consent is per loan.',
-          'The customer\'s electronic acceptance (checkbox + CTA) counts as the signature.',
-        ],
-        openQuestions: [
-          'Does Legal need the full Spanish form in the app, or is a link to a PDF enough?',
-          'Do we store a timestamped copy for disputes and chargebacks?',
-          'Is the Cobros Domiciliados S.A. de C.V. name required when Tala is the provider?',
-        ],
-        designInputs: [
-          'PRD: "Create a new agreement template to match the proposed Monato template."',
-          'Dates in Spanish follow the LATAM style with lowercase months (e.g. 15 de septiembre de 2026).',
-        ],
-      },
+      notes: {},
     },
     'choose-account': {
       title: 'Choose account',
@@ -215,12 +218,8 @@ export const mxAutoDebit: Prototype = {
       notes: {
         assumptions: ['Monato accepts CLABE and debit card as instruments. The default is the account receiving the loan.'],
         openQuestions: [
-          'Does penny validation work for debit cards, or only CLABE?',
-          'Does Risk treat a collection account different from the disbursement account differently?',
-        ],
-        designInputs: [
-          'Design request 2b: "I can edit the bank account from which Tala debits, at point of consent."',
-          'CLABE shows TALA on the statement, so the screen gently nudges towards CLABE to cut chargebacks.',
+          'PRD mentions "I can edit the bank account from which Tala debits, at point of consent." - which accounts can be added here?',
+          'Does selecting different accounts show the debit as coming from Monato or Tala on the statement?',
         ],
       },
     },
@@ -234,23 +233,22 @@ export const mxAutoDebit: Prototype = {
           'On confirm: POST /customers, then POST /instruments. Monato runs a penny drop to check the account owner.',
           'The mandate is registered only after a successful check.',
         ],
-        openQuestions: [
-          'How long does penny validation take? If it takes more than ~5 s, do we disburse first and confirm auto-pay by push?',
-          'Which failure reasons does Monato return, and which can we safely show customers?',
+        openQuestions: ['Which failure reasons does Monato return, and which can we safely show customers?'],
+        answeredQuestions: [
+          'How long does penny validation take? About 2–5 seconds, so a short loading state is enough.',
+          'Do we need to wait for disbursement to succeed before confirming Autopay? No — consent is collected, so we confirm straight away.',
         ],
-        designInputs: ['Arun: "there\'s a failure state over here as well… think through the design for that."'],
       },
     },
     'setup-success': {
-      title: 'Auto-pay is on',
+      title: 'Autopay is on',
       description: 'Confirmation. At disbursement it doubles as "your money is on the way"; from other entry points it shows a summary.',
       component: Consent.SetupSuccess,
       notes: {
-        assumptions: ['Mandate status is saved to the mandate table, so the customer is eligible for the next target due date.'],
         openQuestions: ['Should we also send the signed form by email or SMS?'],
         designInputs: [
-          'Telling people where to manage auto-pay lowers the "I didn\'t agree to this" risk (Risks table).',
-          'Content changes with state.source. Try both by entering from disbursement and from the Home card.',
+          'Telling people where to manage Autopay lowers the "I didn\'t agree to this" risk (Risks table).',
+          'One success screen instead of two: money on the way is the hero, Autopay confirmation sits under it.',
         ],
       },
     },
@@ -259,84 +257,114 @@ export const mxAutoDebit: Prototype = {
       description: "Penny validation failed. The loan isn't affected, and the customer can try another account or continue.",
       component: Consent.SetupFailed,
       notes: {
-        assumptions: ['Disbursement continues whatever the registration outcome.'],
-        openQuestions: [
-          'After a failure, should the Home card invite them again the next day or stay hidden?',
-          'Can "Try another account" re-run validation without restarting disbursement?',
-        ],
-        designInputs: [
-          'Arun: "so sorry, mandate is not registered because of reason — but we\'re sending your money anyway."',
-          'PRD: "If penny validation fails, tell user that the auto-debit registration failed. Proceed with disbursement."',
-        ],
+        designInputs: ['Disbursement continues as normal. The customer can try another account or continue without Autopay.'],
       },
     },
     'money-on-way': {
       title: 'Skipped at disbursement',
-      description: 'Normal disbursement confirmation after skipping, with a low-pressure pointer to set up auto-pay later.',
+      description: 'Normal disbursement confirmation after skipping, with a button to turn Autopay on straight from the card.',
       component: Consent.MoneyOnWay,
       notes: {
         assumptions: ['Skipping keeps the customer in the test cohort, so later entry points can reach them.'],
-        designInputs: ['The skip label "my money still comes through" makes skipping feel safe, so consent stays freely given.'],
+        designInputs: [
+          'The skip label "my money still comes through" makes skipping feel safe, so consent stays freely given.',
+          'The card carries its own CTA rather than sending people to look for it on Home.',
+        ],
+      },
+    },
+
+    // ── Disbursement outcomes ─────────────────────────────────────────────────
+    'disb-fail-autopay-on': {
+      title: 'Disbursement failed · Autopay on',
+      description: 'Disbursement has failed, but we only learn that ~15 minutes later, so the customer still sees money on the way.',
+      component: Consent.DisbFailAutopayOn,
+      notes: {
+        information: [
+          'Disbursement in Mexico takes about 15 minutes, so at this moment neither Tala nor the customer knows it failed.',
+          'Autopay registration is independent of disbursement, so the mandate really is active.',
+        ],
+        openQuestions: [
+          'When the disbursement failure comes back, how do we tell the customer, and does the mandate stay registered for the retried disbursement?',
+        ],
+      },
+    },
+    'disb-ok-autopay-fail': {
+      title: 'Disbursement fine · Autopay failed',
+      description: 'The money is on its way, but the mandate could not be registered. The customer can try again from the card.',
+      component: Consent.DisbOkAutopayFail,
+      notes: {
+        openQuestions: [
+          'Should we allow the customer to set up Autopay again immediately after a failure, or wait until the money has landed?',
+          'How many attempts do we allow in one session before we stop offering it?',
+        ],
+        designInputs: ['Disbursement stays the hero; the Autopay failure is secondary and never blocks the loan.'],
+      },
+    },
+    'both-fail': {
+      title: 'Both failed',
+      description: 'Identical to the screen above — at this point the disbursement failure is not known yet.',
+      component: Consent.BothFail,
+      notes: {
+        information: [
+          'Because the disbursement result arrives ~15 minutes later, this case is indistinguishable from "disbursement fine, Autopay failed" at the moment of the screen.',
+        ],
+        openQuestions: ['Do we need a combined message later, or do the two failures get communicated separately?'],
       },
     },
 
     // ── Around a debit ────────────────────────────────────────────────────────
     'home-autopay-on': {
-      title: 'Home — auto-pay on',
-      description: 'The repayment card shows auto-pay status. Manual payment stays available but is not the lead action.',
+      title: 'Home — Autopay on',
+      description: 'The repayment card shows the next payment, with Autopay status and a link into settings.',
       component: Lifecycle.HomeAutoPayOn,
       notes: {
-        assumptions: ['Auto-pay never locks the manual repayment flow.'],
-        openQuestions: ['If the customer pays manually before 2:30pm on T-1, do we cancel that day\'s instruction automatically?'],
-        designInputs: ['PRD: show auto-debit status "via a callout on the repayment home card".'],
+        assumptions: ['Manual payment stays available; Autopay never locks the repayment flow.'],
+        openQuestions: ['If the customer pays manually before the collection, do we cancel that instruction automatically?'],
+        designInputs: [
+          'Status sits in a title + one-line card with Settings on the right, so every Autopay state on Home reads the same way.',
+          'Second loan onwards, this card is how the customer knows Autopay is active — the "verified badge" idea from the 15 Sep review.',
+        ],
+      },
+    },
+    'home-next-payment': {
+      title: 'Home — next payment',
+      description: 'After a payment, Home moves on to the next one. We talk about what is coming, not what has already been paid.',
+      component: Lifecycle.HomeNextPayment,
+      notes: {
+        designInputs: ['Past payments live in payment history, so Home stays focused on the next due date.'],
       },
     },
     'home-reminder': {
       title: 'Home — day before',
-      description: 'Warning on T-1 before the 2:30pm submission: keep the money in the account tonight.',
+      description: 'The day before the collection: keep enough balance in the account.',
       component: Lifecycle.HomeReminder,
       notes: {
-        assumptions: ['Reminder push and card go out the morning of T-1, before Tala submits to Monato at 2:30pm.'],
         openQuestions: [
           T_MINUS_ONE,
           'Should the reminder let customers skip this one collection (e.g. salary is late)?',
         ],
         designInputs: [
           'Q3 learning: do customers cancel or move money out in the 24 hours after this warning? Log timestamps against it.',
-          'Brief: the day of notice "is a nudge to fund the account, and it is a window to move money out".',
           'Timing debits to payday improves success by 4–7 percentage points.',
         ],
       },
     },
     'home-processing': {
       title: 'Home — debit in progress',
-      description: 'Between submission and confirmation. Discourages a double payment during the ~12-hour gap before Tala hears back.',
+      description: 'On the debit day: the bank collects between 6pm and midnight, so the card warns against paying twice.',
       component: Lifecycle.HomeProcessing,
       notes: {
-        assumptions: [
-          'Tala submits at 2:30pm T-1, Monato submits to the bank by 6pm, the bank executes 6pm–12am, and Tala hears by 12pm on T.',
+        information: [
+          'The bank executes between 6pm and midnight on the day, and Monato confirms to Tala by 12pm the next day.',
           'For Santander, the bank responds on T+0, so this state is shorter.',
-          'Friday–Sunday due dates are excluded because confirmation would take until Monday or Tuesday.',
         ],
         openQuestions: [
           'If a customer pays manually in this window and the debit also succeeds, how quickly do we refund?',
-          'Do late fees and collections calls pause until the confirmation arrives?',
+          'When the due date falls on a Friday or a weekend, the status only updates on Monday or Tuesday — what exactly do we say on those days?',
         ],
         designInputs: [
-          'Arun\'s insurance example: "your auto-debit is scheduled, we suggest you don\'t make any online payment".',
-          'The customer sees money leave their bank before Tala knows. This state closes that information gap.',
-        ],
-      },
-    },
-    'home-paid': {
-      title: 'Home — paid by auto-pay',
-      description: 'Success state after Monato confirms. Shows the next due date, with auto-pay still on.',
-      component: Lifecycle.HomePaid,
-      notes: {
-        openQuestions: ['Are collections calls and messages suppressed as soon as the debit is confirmed?'],
-        designInputs: [
-          'Brief: "the calls actually have to stop" — suppression is where the value comes from.',
-          'Every payment is tagged as auto-pay or self-pay (required instrumentation).',
+          'Today, nothing on screen changes on the debit day — only an SMS goes out. This state closes that gap.',
+          'Explicit timing ("between 6pm and midnight") plus "don\'t pay manually" was the ask from the 15 Sep review.',
         ],
       },
     },
@@ -345,49 +373,43 @@ export const mxAutoDebit: Prototype = {
       description: 'The debit failed, usually for lack of funds. The customer is asked to pay manually within the grace period.',
       component: Lifecycle.HomeFailed,
       notes: {
-        assumptions: [
-          'v1 does not retry failed debits (PRD). Customers pay manually within the 3-day grace period.',
-          'The mandate stays active for the next instalment.',
-        ],
+        information: ['Mexico has no automatic retry for now — retries are expensive, so recovery is manual.'],
         openQuestions: [
-          'Are retries configurable per market in the framework? If yes, add "We\'ll try again on …".',
           'Which reason codes can we show (insufficient funds, account closed, mandate revoked at the bank)?',
+          'Do we also need a one-off popup on the next app open, like the success and failure cards discussed for CICO?',
         ],
         designInputs: [
           '2025 test: 58% success, and 41% of failures were insufficient funds. Debits over $1,000 fail more often.',
-          'Voice and tone: empathetic, never blaming. Red is used only for the status label.',
+          'Voice and tone: empathetic, never blaming.',
         ],
       },
     },
 
-    // ── History ───────────────────────────────────────────────────────────────
+    // ── Payment history ───────────────────────────────────────────────────────
     'loan-timeline': {
-      title: 'Loan timeline',
-      description: 'New transaction history: disbursement, auto-pay on, and every instalment with its auto-pay status.',
+      title: 'Payment history',
+      description: 'Every loan with its payments inside it — Autopay collections, manual payments, fees and refunds.',
       component: Lifecycle.LoanTimeline,
-      backTo: 'home-autopay-on',
+      backTo: 'profile',
       notes: {
-        assumptions: ['Gen 3 has borrowing history but no transaction history, so this is a new surface.'],
-        openQuestions: [
-          'Where does this live in the app: the Credit tab, loan details, or Profile?',
-          'Should it also show manual payments, fees and refunds?',
+        information: ['Gen 3 has borrowing history but no transaction history, so this is a new surface.'],
+        answeredQuestions: [
+          'Where does this live in the app? In the payment history section of the profile page.',
+          'Should it also show manual payments, fees and refunds? Yes — everything that moved money on the loan.',
         ],
-        designInputs: [
-          'Arun: a timeline of instalment dates showing whether auto-pay is in progress, succeeded, and when the next attempt is.',
-          '"For auto-debits to be successful trust is important — the only way to gain trust is transparency and control."',
-        ],
+        openQuestions: ['How far back do we show closed loans, and do we paginate?'],
+        designInputs: ['Payments sit inside their loan card, so a customer with several loans can tell them apart.'],
       },
     },
     'debit-detail': {
-      title: 'Auto-pay payment detail',
+      title: 'Autopay payment detail',
       description: 'One debit, end to end: when it was requested, collected and confirmed, plus how it appears on the statement.',
       component: Lifecycle.DebitDetail,
       backTo: 'loan-timeline',
       notes: {
-        assumptions: ['With CLABE the statement shows TALA. Some banks may show Monato or Cobros Domiciliados instead.'],
         openQuestions: [
           'Confirm the statement descriptor for each bank with Monato.',
-          'Should Care agents see this exact view? (Brady to design Care visibility.)',
+          'How does the CARE counter-part of payment history and automatic payments look like?',
         ],
         designInputs: [
           'Chargeback risk: customers who don\'t recognise "Monato" dispute the charge before Tala confirms it.',
@@ -396,20 +418,21 @@ export const mxAutoDebit: Prototype = {
       },
     },
 
-    // ── Manage ────────────────────────────────────────────────────────────────
-    'autopay-settings': {
-      title: 'Auto-pay settings',
-      description: 'Status, next collection, account, collection day, agreement, and controls to skip or turn off.',
-      component: Manage.AutoPaySettings,
+    // ── Profile & manage ──────────────────────────────────────────────────────
+    profile: {
+      title: 'Profile & settings',
+      description: 'Autopay and payment history live here, alongside the existing account, preferences and support sections.',
+      component: Profile,
       backTo: 'home-autopay-on',
       notes: {
-        assumptions: ['Customer management is Q4 on the roadmap. It is designed now to shape the API contracts.'],
-        openQuestions: ['Where is the entry point: the Home card link, the Credit tab, or Profile?'],
-        designInputs: [
-          'Design requests: pause or cancel the mandate, edit the account, manage the debit date, transaction history.',
-          'Banxico: customers can revoke consent at any time.',
-        ],
+        openQuestions: ['Will our profile page be ready to support AutoPay for launch?'],
       },
+    },
+    'autopay-settings': {
+      title: 'Autopay settings',
+      description: 'Status, next collection, account, collection day, agreement, and controls to skip or turn off.',
+      component: Manage.AutoPaySettings,
+      backTo: 'profile',
     },
     'change-date': {
       title: 'Collection day',
@@ -418,14 +441,6 @@ export const mxAutoDebit: Prototype = {
       backTo: 'autopay-settings',
       notes: {
         assumptions: ['v2 configurability. Not in v1.'],
-        openQuestions: [
-          'Can the collection day fall after the due date, inside the grace period?',
-          'Does changing the day need a new mandate or instruction on Monato?',
-        ],
-        designInputs: [
-          'Paydays in MX are the 15th and 30th. There are payment spikes 2–3 days before the 15th when payday falls on a weekend.',
-          'Arun: letting customers move the date "will indirectly solve" the weekend and holiday problem.',
-        ],
       },
     },
     'pause-sheet': {
@@ -435,26 +450,21 @@ export const mxAutoDebit: Prototype = {
       backTo: 'autopay-settings',
       notes: {
         assumptions: ['Skipping one collection keeps the mandate active.'],
-        openQuestions: ['What is the latest time to skip? Probably before the 2:30pm T-1 submission.'],
-        designInputs: ['Customer management request: pause.'],
+        openQuestions: ['What is the latest time to skip? Probably before the submission on the collection day.'],
       },
     },
     'cancel-sheet': {
-      title: 'Turn off auto-pay',
+      title: 'Turn off Autopay',
       description: 'Honest consequences, no guilt. Turning off is free and immediate.',
       component: Manage.CancelSheet,
       backTo: 'autopay-settings',
       notes: {
         assumptions: ['Turning off revokes the mandate on Monato immediately, at no cost to the customer.'],
-        openQuestions: ['If turned off after the 2:30pm T-1 submission, can the in-flight instruction still be stopped?'],
-        designInputs: [
-          'Q3 behaviour metrics: how many cancel, how fast, and how cancellations line up with the reminder notification.',
-          'Guardrail: consent revocation rate.',
-        ],
+        openQuestions: ['If turned off after the instruction has been submitted, can the in-flight charge still be stopped?'],
       },
     },
     'autopay-off': {
-      title: 'Auto-pay is off',
+      title: 'Autopay is off',
       description: 'Confirms that nothing more will be collected and shows the next payment the customer owes.',
       component: Manage.AutoPayOff,
       notes: {
@@ -465,7 +475,7 @@ export const mxAutoDebit: Prototype = {
     // ── Notifications ─────────────────────────────────────────────────────────
     'pn-all': {
       title: 'All notifications',
-      description: 'Every auto-pay push in journey order. Tap one to open where it leads.',
+      description: 'Every Autopay push in journey order. Tap one to open where it leads.',
       component: Push.NotificationCentre,
       notes: {
         assumptions: ['Pushes are sent through Braze and triggered by mandate and charge events from the auto-debit framework.'],
@@ -477,7 +487,7 @@ export const mxAutoDebit: Prototype = {
       },
     },
     'pn-setup-success': {
-      title: 'Push — auto-pay on',
+      title: 'Push — Autopay on',
       description: 'Sent after the mandate is registered, especially when validation finishes after the customer leaves.',
       component: Push.PushSetupSuccess,
     },
@@ -488,7 +498,7 @@ export const mxAutoDebit: Prototype = {
     },
     'pn-reminder': {
       title: 'Push — day before',
-      description: 'Morning of T-1: payment due tomorrow, keep the money in the account tonight.',
+      description: 'Sent the day before the collection: keep the money in the account.',
       component: Push.PushReminder,
       notes: {
         openQuestions: [T_MINUS_ONE],
@@ -497,7 +507,7 @@ export const mxAutoDebit: Prototype = {
     },
     'pn-processing': {
       title: 'Push — request sent',
-      description: 'Sent at submission (2:30pm T-1) so the bank debit that evening is expected.',
+      description: 'Sent at submission so the bank debit that evening is expected.',
       component: Push.PushProcessing,
       notes: {
         designInputs: ['Covers the gap where money leaves the account before Tala can confirm it — the main chargeback trigger.'],
@@ -505,7 +515,7 @@ export const mxAutoDebit: Prototype = {
     },
     'pn-paid': {
       title: 'Push — payment received',
-      description: 'Sent once Monato confirms success (by 12pm on T).',
+      description: 'Sent once Monato confirms success, by 12pm the day after the collection.',
       component: Push.PushPaid,
       notes: { designInputs: ['PRD: "On successful debit, a payment collection notification is sent to the user."'] },
     },
@@ -518,7 +528,7 @@ export const mxAutoDebit: Prototype = {
       },
     },
     'pn-cancelled': {
-      title: 'Push — auto-pay off',
+      title: 'Push — Autopay off',
       description: 'Confirms a cancellation, including one made at the bank rather than in the app.',
       component: Push.PushCancelled,
       notes: {

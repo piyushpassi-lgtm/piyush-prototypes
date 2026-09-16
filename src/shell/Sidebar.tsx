@@ -104,11 +104,8 @@ export function PrototypeNav({ prototypes, proto, screenId, onSelect }: NavProps
                           )}
                         >
                           <Marker kind={section.kind} index={i} active={active} />
-                          <span className="min-w-0">
-                            <span className={cx('block text-[12.5px] font-medium leading-tight', active ? 'text-bone-0' : 'text-white/70')}>
-                              {s.title}
-                            </span>
-                            <span className="mt-0.5 line-clamp-2 block text-[11px] leading-snug text-white/30">{s.description}</span>
+                          <span className={cx('min-w-0 text-[12.5px] font-medium leading-tight', active ? 'text-bone-0' : 'text-white/70')}>
+                            {s.title}
                           </span>
                         </button>
                       </li>

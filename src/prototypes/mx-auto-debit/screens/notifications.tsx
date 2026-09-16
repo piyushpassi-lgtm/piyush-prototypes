@@ -12,20 +12,20 @@ const bbva = accountShort(ACCOUNTS.bbva)
 export const PUSHES = {
   nudge: {
     title: 'Stop worrying about your due date',
-    body: `Turn on auto-pay and we'll collect your ${LOAN.instalment} on ${DUES[0].date}. Cancel any time.`,
+    body: `Turn on Autopay and we'll collect your ${LOAN.instalment} on ${DUES[0].date}. Cancel any time.`,
     clock: '10:30',
     day: 'Thursday, 3 September',
     to: 'consent',
   },
   setupSuccess: {
-    title: 'Auto-pay is on',
+    title: 'Autopay is on',
     body: `We'll collect ${LOAN.instalment} from ${bbva} on ${DUES[0].date}. We'll remind you the day before.`,
     clock: '10:32',
     day: 'Thursday, 3 September',
     to: 'autopay-settings',
   },
   setupFailed: {
-    title: "We couldn't set up auto-pay",
+    title: "We couldn't set up Autopay",
     body: 'Your bank couldn’t confirm the account. Your loan isn’t affected — tap to try another account.',
     clock: '10:32',
     day: 'Thursday, 3 September',
@@ -33,7 +33,7 @@ export const PUSHES = {
   },
   reminder: {
     title: `Your ${LOAN.instalment} payment is due tomorrow`,
-    body: `Auto-pay collects it from ${bbva} tonight. Keep the money in your account.`,
+    body: `Autopay collects it from ${bbva} tonight. Keep the money in your account.`,
     clock: '9:00',
     day: 'Monday, 14 September',
     to: 'home-reminder',
@@ -47,20 +47,20 @@ export const PUSHES = {
   },
   paid: {
     title: 'Your payment is in',
-    body: `Auto-pay collected ${LOAN.instalment} for ${DUES[0].date}. Next payment: ${DUES[1].date}.`,
+    body: `Autopay collected ${LOAN.instalment} for ${DUES[0].date}. Next payment: ${DUES[1].date}.`,
     clock: '11:48',
     day: 'Tuesday, 15 September',
     to: 'debit-detail',
   },
   failed: {
-    title: "Auto-pay didn't go through",
+    title: "Autopay didn't go through",
     body: `BBVA couldn't send ${LOAN.instalment}. Pay by ${LOAN.graceUntil} to avoid a late fee.`,
     clock: '11:48',
     day: 'Tuesday, 15 September',
     to: 'home-failed',
   },
   cancelled: {
-    title: 'Auto-pay is off',
+    title: 'Autopay is off',
     body: `We won't collect any more payments. Your next ${LOAN.instalment} is due ${DUES[1].date}.`,
     clock: '6:12',
     day: 'Wednesday, 16 September',
@@ -135,7 +135,7 @@ const TIMELINE: Array<{ label: string; keys: PushKey[] }> = [
 
 export function NotificationCentre({ go, setState }: ScreenProps) {
   return (
-    <LockScreen clock="9:41" day="The full auto-pay journey" hint="Tap any notification to see where it leads">
+    <LockScreen clock="9:41" day="The full Autopay journey" hint="Tap any notification to see where it leads">
       {TIMELINE.map((group) => (
         <div key={group.label} className="flex flex-col gap-2 pb-2">
           <p className="type-caption px-2 pt-2 text-bone-0/70">{group.label}</p>
