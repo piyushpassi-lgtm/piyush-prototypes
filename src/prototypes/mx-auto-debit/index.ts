@@ -1,4 +1,4 @@
-import type { Prototype } from '../types'
+import type { Prototype, ScreenNotes } from '../types'
 import * as Consent from './screens/consent'
 import * as Entry from './screens/entry'
 import * as Lifecycle from './screens/lifecycle'
@@ -9,6 +9,29 @@ import * as Push from './screens/notifications'
 
 const T_MINUS_ONE =
   'Submit on T-1 or on the due date? The copy assumes T-1 ("a day early"); the decision is still open with the team.'
+
+// Both consent variants carry the same notes — the skip question is what separates them.
+const consentNotes: ScreenNotes = {
+  assumptions: [
+    'Consent is given by tapping Turn on auto-pay. There is no checkbox, and the direct debit form is presented on the screen.',
+    'Consent is per loan and does not carry over to the next loan (Legal, ZG).',
+    'Skipping never blocks disbursement. Banxico rules do not allow consent to be mandatory for disbursement.',
+    'No incentive is offered in Q3.',
+  ],
+  openQuestions: [
+    'Will we allow skip? Compare the two variants of this screen.',
+    "Should we allow picking a 'from' account, as shown in the prototype?",
+    'Is consent through the CTA enough for Legal? Scenario 3 (a standalone step with active consent) was rated lowest CONDUSEF/LPDUSF risk.',
+    T_MINUS_ONE,
+    'How does the 3-day grace period interact with the ~12-hour confirmation gap? Should we pause penalties?',
+    'Maximum amount on the form: exactly the instalment, or a cap that covers late fees?',
+  ],
+  designInputs: [
+    'Must show: amount, date of debit (target date), and the account (disbursement account by default).',
+    'Fixes the 2025 test gaps: gives a reason, reassures on amount and timing, and says clearly that you can cancel.',
+    'Arun: "you have the ability to pause, manage and view everything — you are in control, not Tala".',
+  ],
+}
 
 export const mxAutoDebit: Prototype = {
   id: 'mx-auto-debit',
@@ -31,7 +54,7 @@ export const mxAutoDebit: Prototype = {
       id: 'consent',
       label: 'Consent & registration',
       kind: 'flow',
-      screens: ['consent', 'agreement', 'choose-account', 'setting-up', 'setup-success', 'setup-failed', 'money-on-way'],
+      screens: ['consent', 'consent-no-skip', 'agreement', 'choose-account', 'setting-up', 'setup-success', 'setup-failed', 'money-on-way'],
     },
     {
       id: 'lifecycle',
@@ -66,18 +89,17 @@ export const mxAutoDebit: Prototype = {
       description: 'Customer confirms where their loan goes. Tapping Confirm leads to the consent step when they are in the test group.',
       component: Entry.DisbursementReview,
       notes: {
-        assumptions: [
+        information: [
           'Assignment Service puts the customer in test or control when they tap Confirm. Control goes straight to disbursement.',
-          'Only customers disbursing to a supported bank are eligible (Actinver, Afirme, Banamex, BanBajío … Santander, Scotiabank).',
-          'Customers whose first due date falls on a Friday, Saturday, Sunday or holiday are excluded from the experiment.',
         ],
         openQuestions: [
           'Should debit-card disbursements see consent, or only CLABE? Only CLABE lets us show TALA on the statement.',
-          'Can we reuse the existing Belvo consent collection front end and back end?',
+          'Do we exclude customers whose first due date falls on a Friday, Saturday, Sunday or holiday? To discuss with the team, along with how we communicate it when that happens.',
+          'Question for Monato: what banks are supported for auto-debit?',
         ],
-        designInputs: [
+        engineeringQuestions: [
           'PRD Option 2: consent is collected in the Tala app at disbursement. Option 1 (Braze-only consent) was rejected.',
-          'This is a happy moment: the customer is about to get money, so the ask looks ahead instead of competing with a payment.',
+          'Can we reuse the existing Belvo consent collection front end and back end?',
         ],
       },
     },
@@ -151,30 +173,18 @@ export const mxAutoDebit: Prototype = {
 
     // ── Consent & registration ────────────────────────────────────────────────
     consent: {
-      title: 'Consent',
-      description: 'The single consent screen every entry point leads to: how it works, exactly what is set up, and an active authorisation.',
+      title: 'Consent — with skip',
+      description: 'The single consent screen every entry point leads to. Consent is given by the CTA itself, and the customer can skip.',
       component: Consent.Consent,
       backTo: 'home-card',
-      notes: {
-        assumptions: [
-          'The checkbox starts unticked. A standalone step with active consent has the lowest CONDUSEF/LPDUSF risk (scenario 3).',
-          'Consent is per loan and does not carry over to the next loan (Legal, ZG).',
-          'Skipping never blocks disbursement. Banxico rules do not allow consent to be mandatory for disbursement.',
-          'No incentive is offered in Q3.',
-        ],
-        openQuestions: [
-          T_MINUS_ONE,
-          'How does the 3-day grace period interact with the ~12-hour confirmation gap? Should we pause penalties?',
-          'Maximum amount on the form: exactly the instalment, or a cap that covers late fees?',
-          'Which account can be debited: only the disbursement account, or any account in the customer\'s name?',
-        ],
-        designInputs: [
-          'Must show: amount, date of debit (target date), and the account (disbursement account by default).',
-          'Fixes the 2025 test gaps: gives a reason, reassures on amount and timing, and says clearly that you can cancel.',
-          'Arun: "you have the ability to pause, manage and view everything — you are in control, not Tala".',
-          'Showing the statement descriptor up front reduces chargebacks from customers who "don\'t remember agreeing".',
-        ],
-      },
+      notes: consentNotes,
+    },
+    'consent-no-skip': {
+      title: 'Consent — no skip',
+      description: 'The same screen without a skip action: the customer either turns on auto-pay or leaves with the back arrow.',
+      component: Consent.ConsentNoSkip,
+      backTo: 'home-card',
+      notes: consentNotes,
     },
     agreement: {
       title: 'Direct debit form',

@@ -1,127 +1,99 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { CloseBar, ScreenLayout, StickyFooter, TopNav } from '../../../ds/chrome'
-import { Bank, Bell, Check, Clock, Info, Plus, Refresh, Shield, type Icon } from '../../../ds/icons'
+import { Bank, Bell, Check, Clock, File, Info, Plus, Refresh, Shield, type Icon } from '../../../ds/icons'
 import { AlertArt, CalendarArt, PaperPlaneArt, ShapesLoader } from '../../../ds/illustrations'
-import { Button, Callout, Card, Checkbox, DetailRow, RadioRow, Segmented, Tag } from '../../../ds/primitives'
+import { Button, Callout, Card, DetailRow, ListRow, RadioRow, Segmented, Tag } from '../../../ds/primitives'
 import type { ScreenProps } from '../../types'
 import { ACCOUNTS, CUSTOMER, DUES, LOAN, accountIdOf, accountOf, accountShort, firstDueFor, sourceOf, type AccountId } from '../data'
 import { AccountChip } from './shared'
 
 // ── Consent ───────────────────────────────────────────────────────────────────
 
-const HOW_IT_WORKS: Array<{ icon: Icon; title: string; body: string }> = [
-  { icon: Bell, title: 'We remind you the day before', body: "You'll get a notification with the amount and the date." },
-  { icon: Bank, title: 'We collect from your bank', body: 'Only your payment amount, only on your due dates.' },
-  { icon: Shield, title: "You're in control", body: 'Skip a payment or turn off auto-pay in the app, any time.' },
+const VALUE_PROPS: Array<{ icon: Icon; title: string }> = [
+  { icon: Bell, title: 'We remind you the day before' },
+  { icon: Bank, title: 'We collect from your bank' },
+  { icon: Shield, title: "You're in control" },
 ]
 
-export function Consent({ go, back, state, setState }: ScreenProps) {
-  const source = sourceOf(state)
-  const account = accountOf(state)
-  const due = firstDueFor(state)
-  const checked = state.consentChecked === true
-  const atDisbursement = source === 'disbursement'
+/** Consent is given by the CTA itself — there is no separate checkbox. */
+function consentScreen(allowSkip: boolean) {
+  return function Consent({ go, back, state }: ScreenProps) {
+    const source = sourceOf(state)
+    const account = accountOf(state)
+    const due = firstDueFor(state)
+    const atDisbursement = source === 'disbursement'
 
-  return (
-    <ScreenLayout
-      statusClassName="bg-bone-0"
-      header={<TopNav title="Auto-pay your loan" onBack={back} />}
-      footer={
-        <StickyFooter>
-          <Button disabled={!checked} onClick={() => go('setting-up')}>
-            Turn on auto-pay
-          </Button>
-          <Button variant="tertiary" onClick={() => go(atDisbursement ? 'money-on-way' : 'home-card')}>
-            {atDisbursement ? 'Skip — my money still comes through' : 'Not now'}
-          </Button>
-        </StickyFooter>
-      }
-    >
-      <div className="flex flex-col gap-8 px-4 pb-8 pt-6">
-        <section className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <h2 className="type-header-1 text-dark-green-70">Pay on time without thinking about it</h2>
-            <p className="type-body-1 text-dark-green-50">
-              We collect each payment from your bank on its due date. You stay in control the whole time.
+    return (
+      <ScreenLayout
+        statusClassName="bg-bone-0"
+        header={<TopNav title="Auto-pay your loan" onBack={back} />}
+        footer={
+          <StickyFooter>
+            <p className="type-caption text-center text-dark-green-50">
+              By turning on auto-pay you accept the direct debit form.
             </p>
-          </div>
-          <Card className="flex flex-col gap-4 p-4">
-            <h3 className="type-subheader-2 text-dark-green-70">Here's how it works</h3>
-            {HOW_IT_WORKS.map(({ icon: StepIcon, title, body }) => (
-              <div key={title} className="flex gap-4">
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-teal-10 text-teal-90">
-                  <StepIcon />
-                </span>
-                <div className="flex flex-col gap-1">
-                  <span className="type-label-1 text-dark-green-70">{title}</span>
-                  <span className="type-body-2 text-dark-green-50">{body}</span>
+            <Button onClick={() => go('setting-up')}>Turn on auto-pay</Button>
+            {allowSkip && (
+              <Button variant="tertiary" onClick={() => go(atDisbursement ? 'money-on-way' : 'home-card')}>
+                {atDisbursement ? 'Skip — my money still comes through' : 'Not now'}
+              </Button>
+            )}
+          </StickyFooter>
+        }
+      >
+        <div className="flex flex-col gap-8 px-4 pb-8 pt-6">
+          <section className="flex flex-col gap-4">
+            <h3 className="type-subheader-1 text-dark-green-70">How it works</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {VALUE_PROPS.map(({ icon: PropIcon, title }) => (
+                <div key={title} className="flex flex-col items-center gap-2 text-center">
+                  <span className="grid size-12 place-items-center rounded-full bg-teal-10 text-teal-90">
+                    <PropIcon />
+                  </span>
+                  <span className="type-label-2 text-dark-green-70">{title}</span>
                 </div>
-              </div>
-            ))}
-          </Card>
-        </section>
+              ))}
+            </div>
+          </section>
 
-        <section className="flex flex-col gap-4">
-          <h3 className="type-subheader-1 text-dark-green-70">What you're setting up</h3>
-          <Card className="px-4">
-            <DetailRow label="Amount" value={`${LOAN.instalment} MXN`} sub="Per payment" />
-            <DetailRow label="First collection" value={due.full} />
-            <DetailRow label="Then" value="Every due date" sub="Until your loan is repaid" />
-            <DetailRow
-              label="From"
-              value={<AccountChip account={account} />}
-              sub={atDisbursement && accountIdOf(state) === 'bbva' ? "The same account we're sending your money to" : undefined}
-              action={
-                <button type="button" onClick={() => go('choose-account')} className="type-action-link text-orange-50">
-                  Change
-                </button>
-              }
-              last
+          <section className="flex flex-col gap-4">
+            <h3 className="type-subheader-1 text-dark-green-70">What you're setting up</h3>
+            <Card className="px-4">
+              <DetailRow label="Amount" value={`${LOAN.instalment} MXN`} sub="Per payment" />
+              <DetailRow label="First collection" value={due.full} sub="Then every due date until your loan is repaid" />
+              <DetailRow
+                label="From"
+                value={<AccountChip account={account} />}
+                sub={atDisbursement && accountIdOf(state) === 'bbva' ? "The same account we're sending your money to" : undefined}
+                action={
+                  <button type="button" onClick={() => go('choose-account')} className="type-action-link text-orange-50">
+                    Change
+                  </button>
+                }
+                last
+              />
+            </Card>
+            <Callout tone="warning" icon={Clock}>
+              Please maintain sufficient balance for a successful payment on {due.date}.
+            </Callout>
+          </section>
+
+          <Card className="overflow-hidden">
+            <ListRow
+              icon={File}
+              title="Direct debit form"
+              subtitle={`Up to ${LOAN.instalment} per payment, this loan only`}
+              onClick={() => go('agreement')}
             />
           </Card>
-          <Callout tone="warning" icon={Clock}>
-            We send the request to your bank a day early, so make sure the money is there by the night of {due.request}.
-          </Callout>
-        </section>
-
-        <section className="flex flex-col gap-4 rounded-md border border-bone-50 bg-bone-20 p-4">
-          <h3 className="type-subheader-1 text-dark-green-70">Your authorisation</h3>
-          <p className="type-body-1 text-dark-green-70">
-            By turning on auto-pay, you allow Tala to collect your loan payments from the account above. You agree that:
-          </p>
-          <ul className="flex flex-col gap-2">
-            {[
-              `We can collect up to ${LOAN.instalment} on each due date`,
-              `It only covers this loan — ${LOAN.count} payments`,
-              'You can cancel any time in the app, free of charge',
-            ].map((item) => (
-              <li key={item} className="type-body-1 flex gap-2 text-dark-green-70">
-                <Check size={16} className="mt-px shrink-0 text-teal-70" />
-                {item}
-              </li>
-            ))}
-          </ul>
-          <p className="type-body-2 text-dark-green-50">
-            It shows on your bank statement as <span className="font-semibold text-dark-green-70">TALA</span>.
-          </p>
-          <Checkbox checked={checked} onChange={(next) => setState({ consentChecked: next })}>
-            I authorise these charges, as set out in the{' '}
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation()
-                go('agreement')
-              }}
-              className="type-action-link text-orange-50"
-            >
-              direct debit form
-            </button>
-          </Checkbox>
-        </section>
-      </div>
-    </ScreenLayout>
-  )
+        </div>
+      </ScreenLayout>
+    )
+  }
 }
+
+export const Consent = consentScreen(true)
+export const ConsentNoSkip = consentScreen(false)
 
 // ── Agreement ─────────────────────────────────────────────────────────────────
 

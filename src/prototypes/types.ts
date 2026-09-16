@@ -13,8 +13,11 @@ export type ScreenProps = {
 }
 
 export type ScreenNotes = {
+  /** Settled facts — no decision needed. */
+  information?: string[]
   assumptions?: string[]
   openQuestions?: string[]
+  engineeringQuestions?: string[]
   designInputs?: string[]
 }
 

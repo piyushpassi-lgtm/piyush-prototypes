@@ -3,8 +3,10 @@ import { cx } from '../lib/cx'
 import type { ScreenDef, ScreenNotes } from '../prototypes/types'
 
 const GROUPS: Array<{ key: keyof ScreenNotes; label: string; dot: string }> = [
+  { key: 'information', label: 'Information', dot: 'bg-dark-green-50' },
   { key: 'assumptions', label: 'Assumptions', dot: 'bg-teal-50' },
   { key: 'openQuestions', label: 'Open questions', dot: 'bg-orange-50' },
+  { key: 'engineeringQuestions', label: 'Engineering questions', dot: 'bg-green-90' },
   { key: 'designInputs', label: 'Design inputs', dot: 'bg-dark-green-70' },
 ]
 
