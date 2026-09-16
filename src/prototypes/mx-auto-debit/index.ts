@@ -107,9 +107,7 @@ export const mxAutoDebit: Prototype = {
           'Assignment Service puts the customer in test or control when they tap Confirm. Control goes straight to disbursement.',
         ],
         openQuestions: [
-          'Should debit-card disbursements see consent, or only CLABE? Only CLABE lets us show TALA on the statement.',
           'Do we exclude customers whose first due date falls on a Friday, Saturday, Sunday or holiday? To discuss with the team, along with how we communicate it when that happens.',
-          'Question for Monato: what banks are supported for auto-debit?',
         ],
         engineeringQuestions: [
           'PRD Option 2: consent is collected in the Tala app at disbursement. Option 1 (Braze-only consent) was rejected.',
