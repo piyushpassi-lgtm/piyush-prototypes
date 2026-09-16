@@ -53,6 +53,10 @@ function consentScreen(allowSkip: boolean) {
             </div>
           </section>
 
+          <Callout tone="warning" icon={Clock}>
+              Please maintain balance for a payment on {due.date}.
+            </Callout>
+
           <section className="flex flex-col gap-4">
             <h3 className="type-subheader-1 text-dark-green-70">What you're setting up</h3>
             <Card className="px-4">
@@ -78,9 +82,6 @@ function consentScreen(allowSkip: boolean) {
                 last
               />
             </Card>
-            <Callout tone="warning" icon={Clock}>
-              Please maintain sufficient balance for a successful payment on {due.date}.
-            </Callout>
           </section>
         </div>
       </ScreenLayout>
